@@ -1,25 +1,33 @@
 #!/usr/bin/env bash
 
-	#montage "*pdf" png:- | convert - sixel:- #but keeping vectors via ghostscript
-	#or like cat *pdf | convert - sixel:- but for all pdf:
-	#gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -g2048x2048 -dPDFFitPage -sOutputFile=- *.pdf \
-    #| convert - sixel:-
-	#| convert - sixel:- #convert to sixel to display inside terminal
-	
-	IFS=" ";
+	IFS=" " #delimiter
 	#results in syntax: pdfname.pdf:pagenumber:searchstring
 	resultslist=$(pdfgrep -n -o $1 *.pdf)
 	deduplicatedlist=$(echo $resultslist  | sort -u) #deduplicate
-    echo $deduplicatedlist #cut -d ':' -f 1 
 	
 	
-	
-	pdftk A=jungealslehrer.pdf B=take-vector-screenshot.pdf cat A2 B1 output - \
+	#determine individual pdf files:
+    uniquepdfnames=$(echo $deduplicatedlist | cut -d ':' -f 1 | sort -u)
+    unset IFS
+    uniquepdfcount=$(echo $uniquepdfnames | wc -w)
+    echo "Found X results inside $uniquepdfcount pdf files"
+    
+    #will result in e.g. pdfnames="A=first.pdf B=second.pdf":
+    c=65 #pdftek can't work with lowercase letters. ASCII uppercase letter range: 65-90.
+    i=$c
+    end=$(($i+$uniquepdfcount-1))
+    while [ $i -le $end ]; do
+        appendchar=$(printf "\\$(printf %o $i)\n")
+        pdfnames=$pdfnames$appendchar"="$(echo $uniquepdfnames | cut -d " " -f $(($i-$c+1)))" "
+        
+        i=$((i + 1))
+        
+    done
+    echo $pdfnames
+    
+	#montage "*pdf" png:- | convert - sixel:- #but keeping vectors via ghostscript
+	#or like cat *pdf | convert - sixel:- but for all pdf
+	#pdftk to extract pages; ghostscript to limit the display size / space; convert to sixel for terminal display:
+	pdftk $pdfnames cat A2 B1 C1 output - \
 	| gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -g2048x2048 -dPDFFitPage -sOutputFile=- - \
 	| convert - sixel:-
-	
-	
-	#pdftk A=jungealslehrer.pdf B=take-vector-screenshot.pdf cat A2 B1 output - | convert - sixel:-
-	
-	#pdftk *.pdf cat 1  output - | convert - sixel:- #convert to sixel to display inside terminal
-
