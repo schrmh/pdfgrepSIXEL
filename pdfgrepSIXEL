@@ -2,8 +2,24 @@
 
 	#montage "*pdf" png:- | convert - sixel:- #but keeping vectors via ghostscript
 	#or like cat *pdf | convert - sixel:- but for all pdf:
-	gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -g2048x2048 -dPDFFitPage -sOutputFile=- *.pdf \
-	| convert - sixel:- #convert to sixel to display inside terminal
+	#gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -g2048x2048 -dPDFFitPage -sOutputFile=- *.pdf \
+    #| convert - sixel:-
+	#| convert - sixel:- #convert to sixel to display inside terminal
 	
-	#pdftk full-pdf.pdf cat 12-15 output outfile_p12-15.pdf
+	IFS=" ";
+	#results in syntax: pdfname.pdf:pagenumber:searchstring
+	resultslist=$(pdfgrep -n -o $1 *.pdf)
+	deduplicatedlist=$(echo $resultslist  | sort -u) #deduplicate
+    echo $deduplicatedlist #cut -d ':' -f 1 
+	
+	
+	
+	pdftk A=jungealslehrer.pdf B=take-vector-screenshot.pdf cat A2 B1 output - \
+	| gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -g2048x2048 -dPDFFitPage -sOutputFile=- - \
+	| convert - sixel:-
+	
+	
+	#pdftk A=jungealslehrer.pdf B=take-vector-screenshot.pdf cat A2 B1 output - | convert - sixel:-
+	
+	#pdftk *.pdf cat 1  output - | convert - sixel:- #convert to sixel to display inside terminal
 
