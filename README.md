@@ -3,6 +3,10 @@ pdfgrepSIXEL
 
 A tool inspired by pdfgrep that displays not text but pdf pages as results.
 
+Usage: `./pdfgrepSIXEL 'String'`  
+**You need a SIXEL capable terminal for this to work!**   
+*E.g. xterm. Some popular terminal emulators like xfce4-terminal don't have SIXEL support.*    
+
 
 Possible future features:
 - No duplicate pages
