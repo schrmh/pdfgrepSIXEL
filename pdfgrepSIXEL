@@ -3,6 +3,7 @@
 	IFS=" " #delimiter
 	#results in syntax: pdfname.pdf:pagenumber:searchstring
 	resultslist=$(pdfgrep -n -o $1 *.pdf)
+	resultscount=$(echo $resultslist | cut -d ':' -f 1 | uniq -c | awk '{print $1}') #results per pdf
 	deduplicatedlist=$(echo $resultslist  | sort -u) #deduplicate
 	
 	pageslist=$(echo $deduplicatedlist | cut -d ':' -f 2) #page numbers
@@ -14,6 +15,7 @@
     unset IFS
     uniquepdfcount=$(echo $uniquepdfnames | wc -w)
     echo "Found $(echo $resultslist | wc -w) results inside $uniquepdfcount pdf files"
+    echo "(Results per pdf: "$resultscount")"
     
     #will result in e.g. pdfnames="A=first.pdf B=second.pdf":
     c=65 #pdftek can't work with lowercase letters. ASCII uppercase letter range: 65-90.
@@ -42,7 +44,7 @@
     echo $pdfnames
     pagecount=$(echo $pageslist | wc -w)
     echo "Pages: " $pagecount "(" $pdfsites")"
-    echo "Per pdf: " $resultpages
+    echo "(Pages per pdf: " $resultpages")"
     
     
 	#montage "*pdf" png:- | convert - sixel:- #but keeping vectors via ghostscript
