@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+    echo "Usage: ./pdfgrepSIXEL 'String'"
 	IFS=" " #delimiter
 	#results in syntax: pdfname.pdf:pagenumber:searchstring
 	resultslist=$(pdfgrep -n -o $1 *.pdf)
@@ -13,7 +13,7 @@
     uniquepdfnames=$(echo $deduplicatedlist | cut -d ':' -f 1 | sort -u)
     unset IFS
     uniquepdfcount=$(echo $uniquepdfnames | wc -w)
-    echo "Found X results inside $uniquepdfcount pdf files"
+    echo "Found $(echo $resultslist | wc -w) results inside $uniquepdfcount pdf files"
     
     #will result in e.g. pdfnames="A=first.pdf B=second.pdf":
     c=65 #pdftek can't work with lowercase letters. ASCII uppercase letter range: 65-90.
@@ -22,23 +22,29 @@
     while [ $i -le $end ]; do #less or equals https://www.ibm.com/support/knowledgecenter/en/ssw_aix_72/osmanagement/korn_shell_conditional_exp.html
         appendchar=$(printf "\\$(printf %o $i)\n")
         pdfnames=$pdfnames$appendchar"="$(echo $uniquepdfnames | cut -d " " -f $(($i-$c+1)))" "
-
-        i=$((i + 1))
         
+            #different pdf files:
+            resultsthispdf=$(echo $resultpages | awk -v N=$(($i-$c+1)) '{print $N}') #better than loop with ${resultpages:2:1} \o/
+            #echo [$resultsthispdf]
+            
+            for p in `seq 1 $resultsthispdf`
+            do
+                pdfsites=$pdfsites$appendchar$p" " #e.g. A1 A2 A4 A8 B2 B7 C3
+                #echo $pdfsites
+            done
+            #differend pdf files end
+        i=$((i + 1))
     done
         
     echo $pdfnames
     pagecount=$(echo $pageslist | wc -w)
-    echo "Pages: " $pagecount "("$pageslist")"
+    echo "Pages: " $pagecount "(" $pdfsites")"
     echo "Per pdf: " $resultpages
-    
-
-
     
     
 	#montage "*pdf" png:- | convert - sixel:- #but keeping vectors via ghostscript
 	#or like cat *pdf | convert - sixel:- but for all pdf
 	#pdftk to extract pages; ghostscript to limit the display size / space; convert to sixel for terminal display:
-	pdftk $pdfnames cat A1 output - \
+	pdftk $pdfnames cat $pdfsites output - \
 	| gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -g2048x2048 -dPDFFitPage -sOutputFile=- - \
 	| convert - sixel:-
