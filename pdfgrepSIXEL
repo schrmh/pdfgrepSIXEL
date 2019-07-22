@@ -18,6 +18,7 @@
     #will result in e.g. pdfnames="A=first.pdf B=second.pdf":
     c=65 #pdftek can't work with lowercase letters. ASCII uppercase letter range: 65-90.
     i=$c
+    position=1
     end=$(($i+$uniquepdfcount-1))
     while [ $i -le $end ]; do #less or equals https://www.ibm.com/support/knowledgecenter/en/ssw_aix_72/osmanagement/korn_shell_conditional_exp.html
         appendchar=$(printf "\\$(printf %o $i)\n")
@@ -26,11 +27,13 @@
             #different pdf files:
             resultsthispdf=$(echo $resultpages | awk -v N=$(($i-$c+1)) '{print $N}') #better than loop with ${resultpages:2:1} \o/
             #echo [$resultsthispdf]
+            #echo $pageslist
             
             for p in `seq 1 $resultsthispdf`
             do
-                pdfsites=$pdfsites$appendchar$p" " #e.g. A1 A2 A4 A8 B2 B7 C3
-                #echo $pdfsites
+                pdfsites=$pdfsites$appendchar$(echo $pageslist | awk -v N=$(($position)) '{print $N}')" " #e.g. A1 A2 A4 A8 B2 B7 C3
+                #echo PAGE FROM PAGESLIST $pageslist | awk -v N=$(($position)) '{print $N}'
+                ((position++))
             done
             #differend pdf files end
         i=$((i + 1))
