@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+	SEP=$(mktemp)
+	OUT=$(mktemp)
+	convert -size 80x4 xc:red pdf:$SEP
+	
     echo "Usage: ./pdfgrepSIXEL 'String'"
 	IFS=" " #delimiter
 	#results in syntax: pdfname.pdf:pagenumber:searchstring
@@ -35,6 +39,8 @@
             qpdflist=$qpdflist$(echo $uniquepdfnames | cut -d " " -f$i)" "$(echo $currentpages | tr " " ",")" "
             #echo $qpdflist
             #different pdf files end
+            pdfseparator=$pdfseparator$OUT" "$(($field-$resultsthispdf))-$(($field-1))" "$SEP" "
+            #echo $pdfseparator
         i=$((i + 1))
     done
         
@@ -42,7 +48,8 @@
     pagecount=$(echo $pageslist | wc -w)
     echo "Pages: " $pagecount "(" $pdfsites ")"
     echo "[Pages per pdf: " $resultpages"]"
-	
+
 	qpdf --empty --pages $qpdflist -- - \
 	| gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -g2048x2048 -dPDFFitPage -sOutputFile=- - \
-	| convert -alpha remove - sixel:-
+	| convert -alpha remove - pdf:$OUT
+	qpdf --empty --pages $pdfseparator -- - | convert - sixel:-
