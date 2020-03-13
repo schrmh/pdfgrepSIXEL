@@ -4,8 +4,7 @@
 	#results in syntax: pdfname.pdf:pagenumber:searchstring
 	resultslist=$(pdfgrep -n -H -o $1 *.pdf)
 	resultscount=$(echo $resultslist | cut -d ':' -f 1 | uniq -c | awk '{print $1}') #results per pdf
-	deduplicatedlist=$(echo $resultslist  | sort -u) #deduplicate
-	
+	deduplicatedlist=$(echo $resultslist  | awk '!a[$0]++') #deduplicate
 	pageslist=$(echo $deduplicatedlist | cut -d ':' -f 2) #page numbers
 	resultpages=$(echo $deduplicatedlist | cut -d ':' -f 1 | uniq -c | awk '{print $1}') #resultpages per pdf
 	
@@ -15,40 +14,35 @@
     uniquepdfcount=$(echo $uniquepdfnames | wc -w)
     echo "Found $(echo $resultslist | wc -w) results inside $uniquepdfcount pdf files"
     echo "(Results per pdf: "$resultscount")"
-    
-    #will result in e.g. pdfnames="A=first.pdf B=second.pdf":
-    c=65 #pdftek can't work with lowercase letters. ASCII uppercase letter range: 65-90.
-    i=$c
-    position=1
-    end=$(($i+$uniquepdfcount-1))
-    while [ $i -le $end ]; do #less or equals https://www.ibm.com/support/knowledgecenter/en/ssw_aix_72/osmanagement/korn_shell_conditional_exp.html
-        appendchar=$(printf "\\$(printf %o $i)\n")
-        pdfnames=$pdfnames$appendchar"="$(echo $uniquepdfnames | cut -d " " -f $(($i-$c+1)))" "
+
+    i=1 #number of file
+    field=1 #position in pagelist
+    while [ $i -le $uniquepdfcount ]; do #less or equals https://www.ibm.com/support/knowledgecenter/en/ssw_aix_72/osmanagement/korn_shell_conditional_exp.html
         
             #different pdf files:
-            resultsthispdf=$(echo $resultpages | awk -v N=$(($i-$c+1)) '{print $N}') #better than loop with ${resultpages:2:1} \o/
+            resultsthispdf=$(echo $resultpages | awk -v N=$i '{print $N}') #better than loop with ${resultpages:2:1} \o/
+            
+            currentpages=$(echo $pageslist | cut -d " " -f $field-$(($field+$resultsthispdf-1)))
+            field=$(($field+$resultsthispdf))
+            
+            #echo $uniquepdfnames | cut -d " " -f$i
+            #echo ~$currentpages~
             #echo [$resultsthispdf]
             #echo $pageslist
+            #echo ------
             
-            for p in `seq 1 $resultsthispdf`
-            do
-                pdfsites=$pdfsites$appendchar$(echo $pageslist | awk -v N=$(($position)) '{print $N}')" " #e.g. A1 A2 A4 A8 B2 B7 C3
-                #echo PAGE FROM PAGESLIST $pageslist | awk -v N=$(($position)) '{print $N}'
-                ((position++))
-            done
-            #differend pdf files end
+            pdfsites=$pdfsites$currentpages$([ $i -ne $uniquepdfcount ] && echo "; ")
+            qpdflist=$qpdflist$(echo $uniquepdfnames | cut -d " " -f$i)" "$(echo $currentpages | tr " " ",")" "
+            #echo $qpdflist
+            #different pdf files end
         i=$((i + 1))
     done
         
-    echo $pdfnames
+    echo $uniquepdfnames
     pagecount=$(echo $pageslist | wc -w)
-    echo "Pages: " $pagecount "(" $pdfsites")"
-    echo "(Pages per pdf: " $resultpages")"
-    
-    
-	#montage "*pdf" png:- | convert - sixel:- #but keeping vectors via ghostscript
-	#or like cat *pdf | convert - sixel:- but for all pdf
-	#pdftk to extract pages; ghostscript to limit the display size / space; convert to sixel for terminal display:
-	pdftk $pdfnames cat $pdfsites output - \
+    echo "Pages: " $pagecount "(" $pdfsites ")"
+    echo "[Pages per pdf: " $resultpages"]"
+	
+	qpdf --empty --pages $qpdflist -- - \
 	| gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -g2048x2048 -dPDFFitPage -sOutputFile=- - \
 	| convert -alpha remove - sixel:-
