@@ -7,7 +7,7 @@
 *E.g. xterm. Some popular terminal emulators like xfce4-terminal don't have SIXEL support.*    
 
 ### Preview:  
-![Example image showing simple usage and output of pdfgrepSIXEL](/example20200313.png?raw=true "Example image showing simple usage and output of pdfgrepSIXEL")  
+![Example image showing simple usage and output of pdfgrepSIXEL](/example.png?raw=true "Example image showing simple usage and output of pdfgrepSIXEL")  
 
 #### Making the changes to xterm  
 Download [xterm](https://invisible-island.net/datafiles/release/xterm.tar.gz) and compile it with the needed options:  
