@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-	OUT=$(mktemp)
-	
     echo "Usage: ./pdfgrepSIXEL 'String'"
 	IFS=" " #delimiter
 	#results in syntax: pdfname.pdf:pagenumber:searchstring
@@ -34,14 +32,7 @@
             #echo ------
             
             pdfsites=$pdfsites$currentpages$([ $i -ne $uniquepdfcount ] && echo "; ")
-            qpdflist=$qpdflist$(echo $uniquepdfnames | cut -d " " -f$i)" "$(echo $currentpages | tr " " ",")" "
-            #echo $qpdflist
             #different pdf files end
-            
-            SEP=$(mktemp)
-            convert -background red -fill white -pointsize 16 label:"$(echo $uniquepdfnames | cut -d " " -f$i)" pdf:$SEP
-            pdfseparator=$pdfseparator$SEP" "$OUT" "$(($field-$resultsthispdf))-$(($field-1))" "
-            #echo $pdfseparator
         i=$((i + 1))
     done
         
@@ -49,8 +40,17 @@
     pagecount=$(echo $pageslist | wc -w)
     echo "Pages: " $pagecount "(" $pdfsites ")"
     echo "[Pages per pdf: " $resultpages"]"
-
-	qpdf --empty --pages $qpdflist -- - \
-	| gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -g2048x2048 -dPDFFitPage -sOutputFile=- - \
-	| convert -alpha remove - pdf:$OUT
-	qpdf --empty --pages $pdfseparator -- - | convert - sixel:-
+    
+    i=1 c=1
+    convert -background red -fill white -pointsize 16 label:"$(echo $uniquepdfnames | cut -d " " -f$c)" sixel:-
+    while [ $i -le $pagecount ]; do
+            PGN=$(mktemp)
+            convert -size 200x200 xc:none -fill green -draw 'rectangle 0,180,30,200' -fill none -pointsize 16 -draw "text 2,196 '$(echo $pdfsites | cut -d " " -f$i | tr -d ";")'" pdf:$PGN
+            qpdf --empty --pages $(echo $uniquepdfnames | cut -d " " -f$c) $(echo $pdfsites | cut -d " " -f$i | tr -d ";") -- - \
+            | gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -g2048x2048 -dPDFFitPage -sOutputFile=- - 2>/dev/null | composite $PGN - pdf:- | convert -alpha remove - sixel:- 2>/dev/null
+            [ "$(echo $pdfsites | cut -d " " -f$i)" != "$(echo $pdfsites | cut -d " " -f$i | tr -d ";")" ] && { 
+                ((c=c+1))
+                convert -background red -fill white -pointsize 16 label:"$(echo $uniquepdfnames | cut -d " " -f$c)" sixel:-
+            }
+        i=$((i + 1))
+    done

@@ -41,3 +41,5 @@ Apply changes: `xrdb ~/.Xresources`
 ### "Bugs":  
 - Only one word is searchable (no space)  
 - Maybe not all found pdf pages will be displayed..
+- Page numbers could hide stuff..
+- Page numbers >999 won't be visible
