@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-	SEP=$(mktemp)
 	OUT=$(mktemp)
-	convert -size 80x4 xc:red pdf:$SEP
 	
     echo "Usage: ./pdfgrepSIXEL 'String'"
 	IFS=" " #delimiter
@@ -39,7 +37,10 @@
             qpdflist=$qpdflist$(echo $uniquepdfnames | cut -d " " -f$i)" "$(echo $currentpages | tr " " ",")" "
             #echo $qpdflist
             #different pdf files end
-            pdfseparator=$pdfseparator$OUT" "$(($field-$resultsthispdf))-$(($field-1))" "$SEP" "
+            
+            SEP=$(mktemp)
+            convert -background red -fill white -pointsize 16 label:"$(echo $uniquepdfnames | cut -d " " -f$i)" pdf:$SEP
+            pdfseparator=$pdfseparator$SEP" "$OUT" "$(($field-$resultsthispdf))-$(($field-1))" "
             #echo $pdfseparator
         i=$((i + 1))
     done
