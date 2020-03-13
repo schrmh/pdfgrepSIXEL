@@ -2,13 +2,12 @@
     echo "Usage: ./pdfgrepSIXEL 'String'"
 	IFS=" " #delimiter
 	#results in syntax: pdfname.pdf:pagenumber:searchstring
-	resultslist=$(pdfgrep -n -o $1 *.pdf)
+	resultslist=$(pdfgrep -n -H -o $1 *.pdf)
 	resultscount=$(echo $resultslist | cut -d ':' -f 1 | uniq -c | awk '{print $1}') #results per pdf
 	deduplicatedlist=$(echo $resultslist  | sort -u) #deduplicate
 	
 	pageslist=$(echo $deduplicatedlist | cut -d ':' -f 2) #page numbers
 	resultpages=$(echo $deduplicatedlist | cut -d ':' -f 1 | uniq -c | awk '{print $1}') #resultpages per pdf
-	echo $pagecount
 	
 	#determine individual pdf files:
     uniquepdfnames=$(echo $deduplicatedlist | cut -d ':' -f 1 | sort -u)
@@ -52,4 +51,4 @@
 	#pdftk to extract pages; ghostscript to limit the display size / space; convert to sixel for terminal display:
 	pdftk $pdfnames cat $pdfsites output - \
 	| gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -g2048x2048 -dPDFFitPage -sOutputFile=- - \
-	| convert - sixel:-
+	| convert -alpha remove - sixel:-
