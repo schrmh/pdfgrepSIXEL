@@ -40,6 +40,6 @@ Apply changes: `xrdb ~/.Xresources`
 
 ### "Bugs":  
 - Only one word is searchable (no space)  
-- Maybe not all found pdf pages will be displayed..
+- Maybe not all found pdf pages will be displayed.. (https://github.com/galatolofederico/st-sixel doesn't have this bug but one other obvious one..)
 - Page numbers could hide stuff..
 - Page numbers >999 won't be visible
