@@ -3,31 +3,13 @@
 ## *A tool inspired by pdfgrep that displays not text but pdf pages as results.*  
 
 ### Usage: `./pdfgrepSIXEL 'String'`  
-**You need a SIXEL capable terminal for this to work!**   
-*E.g. xterm. Some popular terminal emulators like xfce4-terminal don't have SIXEL support.*    
+**You need a SIXEL capable terminal for this to work!**  
+*[st-flexipatch](https://github.com/bakkeby/st-flexipatch) works best with my script from my experience.  
+You could also use [xterm](https://invisible-island.net/datafiles/release/xterm.tar.gz) or [mlterm](http://mlterm.sourceforge.net/) but those will most likely remove SIXELs before all the found pages are displayed.  
+Also note that most terminal emulators don't support SIXEL but it is more adopted than other competitors.*    
 
 ### Preview:  
 ![Example image showing simple usage and output of pdfgrepSIXEL](/example.png?raw=true "Example image showing simple usage and output of pdfgrepSIXEL")  
-
-#### Making the changes to xterm  
-Download [xterm](https://invisible-island.net/datafiles/release/xterm.tar.gz) and compile it with the needed options:  
-```
-tar -xzf xterm.tar.gz  
-cd xterm-353/  
-./configure --enable-dec-locator --enable-sixel-graphics --with-terminal-id=VT340  
-make  
-sudo make install  
-sudo make install-ti  
-```
-Add to ~/.Xresources:
-```
-XTerm*allowWindowOps: true  
-XTerm*decTerminalID: vt340  
-XTerm*sixelScrolling: true  
-XTerm*regisScreenSize: 1920x1080  
-XTerm*numColorRegisters: 256  
-```
-Apply changes: `xrdb ~/.Xresources`
 
 ### Possible future features:  
 - (No) duplicate pages  
@@ -40,6 +22,5 @@ Apply changes: `xrdb ~/.Xresources`
 
 ### "Bugs":  
 - Only one word is searchable (no space)  
-- Maybe not all found pdf pages will be displayed.. (https://github.com/galatolofederico/st-sixel doesn't have this bug but one other obvious one..)
 - Page numbers could hide stuff..
 - Page numbers >999 won't be visible
