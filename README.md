@@ -10,7 +10,7 @@ Also note that most terminal emulators don't support SIXEL but it is more adopte
 
 ### Preview:  
 ![Example image showing simple usage and output of pdfgrepSIXEL](/example.png?raw=true "Example image showing simple usage and output of pdfgrepSIXEL")  
-
+  
 ### Possible future features:  
 - (No) duplicate pages  
 - Highlight text inside pages  

@@ -33,9 +33,7 @@ while [ "$i" -le "$uniquepdfcount" ]; do # less or equals
     field=$(($field + $resultsthispdf))
 
     pdfsites="$pdfsites$currentpages"
-    if [ "$i" -ne "$uniquepdfcount" ]; then
-        pdfsites="$pdfsites; "
-    fi
+    [ "$i" -ne "$uniquepdfcount" ] && pdfsites="$pdfsites; "
 
     # different pdf files end
     i=$((i + 1))
@@ -55,9 +53,10 @@ while [ "$i" -le "$pagecount" ]; do
     qpdf --empty --pages "$(echo $uniquepdfnames | cut -d " " -f"$c")" "$(echo $pdfsites | cut -d " " -f"$i" | tr -d ";")" -- - \
     | gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -g2048x2048 -dPDFFitPage -sOutputFile=- - 2>/dev/null | composite "$PGN" - pdf:- | convert -alpha remove - sixel:- 2>/dev/null
 
-    if [ "$(echo "$pdfsites" | cut -d " " -f"$i")" != "$(echo "$pdfsites" | cut -d " " -f"$i" | tr -d ";")" ]; then
+    [ "$(echo "$pdfsites" | cut -d " " -f"$i")" != "$(echo "$pdfsites" | cut -d " " -f"$i" | tr -d ";")" ] && {
         c=$((c + 1))
         magick -background red -fill white -pointsize 16 label:"$(echo $uniquepdfnames | cut -d " " -f"$c")" sixel:-
-    fi
+    }
     i=$((i + 1))
 done
+
