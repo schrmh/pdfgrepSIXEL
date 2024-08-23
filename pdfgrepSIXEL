@@ -5,7 +5,10 @@ for cmd in pdfgrep magick qpdf gs; do
     command -v "$cmd" >/dev/null 2>&1 || missing="$missing $cmd"
 done
 [ -n "$missing" ] && { echo "Missing packages:$missing"; exit 1; }
-[ -z "$1" ] && { echo "Usage: ./pdfgrepSIXEL 'String'"; exit 1; }
+
+show_result_numbers=true
+[ "$1" = "--no-result-numbers" ] && show_result_numbers=false && shift
+[ -z "$1" ] && { echo "Usage: ./pdfgrepSIXEL [--no-result-numbers] 'String'"; exit 1; }
 
 IFS=" " # delimiter
 # results in syntax: pdfname.pdf:pagenumber:searchstring
@@ -49,7 +52,18 @@ c=1
 magick -background red -fill white -pointsize 16 label:"$(echo $uniquepdfnames | cut -d " " -f"$c")" sixel:-
 while [ "$i" -le "$pagecount" ]; do
     PGN=$(mktemp)
+
+    current_pdf=$(echo $uniquepdfnames | cut -d " " -f"$c")
+
+    # Draw green rectangle with page number
     magick -size 200x200 xc:none -fill green -draw 'rectangle 0,180,30,200' -fill none -pointsize 16 -draw "text 2,196 '$(echo $pdfsites | cut -d " " -f"$i" | tr -d ";")'" pdf:"$PGN"
+
+    # Draw orange rectangle per page including corresponding text search result number unless --no-result-numbers is passed
+    [ "$show_result_numbers" = true ] && {
+        results_this_page=$(echo "$resultslist" | grep "^$current_pdf:$(echo "$pdfsites" | cut -d " " -f"$i" | tr -d ";"):" | wc -l)
+        magick "$PGN" -fill orange -draw 'rectangle 40,180,70,200' -fill none -pointsize 16 -draw "text 42,196 '$results_this_page'" pdf:"$PGN"
+    }
+
     qpdf --empty --pages "$(echo $uniquepdfnames | cut -d " " -f"$c")" "$(echo $pdfsites | cut -d " " -f"$i" | tr -d ";")" -- - \
     | gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -g2048x2048 -dPDFFitPage -sOutputFile=- - 2>/dev/null | composite "$PGN" - pdf:- | convert -alpha remove - sixel:- 2>/dev/null
 

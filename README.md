@@ -10,7 +10,10 @@ Also note that most terminal emulators don't support SIXEL but it is more adopte
 
 ### Preview:  
 ![Example image showing simple usage and output of pdfgrepSIXEL](/example.png?raw=true "Example image showing simple usage and output of pdfgrepSIXEL")  
-  
+
+### Features:
+- Orange results per page number (hide with `--no-result-numbers`)
+
 ### Possible future features:  
 - (No) duplicate pages  
 - Highlight text inside pages  
@@ -21,5 +24,5 @@ Also note that most terminal emulators don't support SIXEL but it is more adopte
 - Auto resize pages when terminal size changes
 
 ### "Bugs":  
-- Page numbers could hide stuff..
-- Page numbers >999 won't be visible
+- Page and result numbers could hide stuff..
+- Page and result numbers >999 won't be visible
