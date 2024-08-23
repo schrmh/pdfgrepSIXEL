@@ -1,56 +1,58 @@
-#!/usr/bin/env bash
-    echo "Usage: ./pdfgrepSIXEL 'String'"
-	IFS=" " #delimiter
-	#results in syntax: pdfname.pdf:pagenumber:searchstring
-	resultslist=$(pdfgrep -n -H -o $1 *.pdf)
-	resultscount=$(echo $resultslist | cut -d ':' -f 1 | uniq -c | awk '{print $1}') #results per pdf
-	deduplicatedlist=$(echo $resultslist  | awk '!a[$0]++') #deduplicate
-	pageslist=$(echo $deduplicatedlist | cut -d ':' -f 2) #page numbers
-	resultpages=$(echo $deduplicatedlist | cut -d ':' -f 1 | uniq -c | awk '{print $1}') #resultpages per pdf
-	
-	#determine individual pdf files:
-    uniquepdfnames=$(echo $deduplicatedlist | cut -d ':' -f 1 | sort -u)
-    unset IFS
-    uniquepdfcount=$(echo $uniquepdfnames | wc -w)
-    echo "Found $(echo $resultslist | wc -w) results inside $uniquepdfcount pdf files"
-    echo "(Results per pdf: "$resultscount")"
+#!/bin/sh
 
-    i=1 #number of file
-    field=1 #position in pagelist
-    while [ $i -le $uniquepdfcount ]; do #less or equals https://www.ibm.com/support/knowledgecenter/en/ssw_aix_72/osmanagement/korn_shell_conditional_exp.html
-        
-            #different pdf files:
-            resultsthispdf=$(echo $resultpages | awk -v N=$i '{print $N}') #better than loop with ${resultpages:2:1} \o/
-            
-            currentpages=$(echo $pageslist | cut -d " " -f $field-$(($field+$resultsthispdf-1)))
-            field=$(($field+$resultsthispdf))
-            
-            #echo $uniquepdfnames | cut -d " " -f$i
-            #echo ~$currentpages~
-            #echo [$resultsthispdf]
-            #echo $pageslist
-            #echo ------
-            
-            pdfsites=$pdfsites$currentpages$([ $i -ne $uniquepdfcount ] && echo "; ")
-            #different pdf files end
-        i=$((i + 1))
-    done
-        
-    echo $uniquepdfnames
-    pagecount=$(echo $pageslist | wc -w)
-    echo "Pages: " $pagecount "(" $pdfsites ")"
-    echo "[Pages per pdf: " $resultpages"]"
-    
-    i=1 c=1
-    magick -background red -fill white -pointsize 16 label:"$(echo $uniquepdfnames | cut -d " " -f$c)" sixel:-
-    while [ $i -le $pagecount ]; do
-            PGN=$(mktemp)
-            magick -size 200x200 xc:none -fill green -draw 'rectangle 0,180,30,200' -fill none -pointsize 16 -draw "text 2,196 '$(echo "$pdfsites" | cut -d " " -f$i | tr -d ";")'" pdf:"$PGN"
-            qpdf --empty --pages $(echo $uniquepdfnames | cut -d " " -f$c) $(echo $pdfsites | cut -d " " -f$i | tr -d ";") -- - \
-            | gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -g2048x2048 -dPDFFitPage -sOutputFile=- - 2>/dev/null | composite $PGN - pdf:- | convert -alpha remove - sixel:- 2>/dev/null
-            [ "$(echo $pdfsites | cut -d " " -f$i)" != "$(echo $pdfsites | cut -d " " -f$i | tr -d ";")" ] && { 
-                ((c=c+1))
-                magick -background red -fill white -pointsize 16 label:"$(echo $uniquepdfnames | cut -d " " -f"$c")" sixel:-
-            }
-        i=$((i + 1))
-    done
+echo "Usage: ./pdfgrepSIXEL 'String'"
+
+IFS=" " # delimiter
+# results in syntax: pdfname.pdf:pagenumber:searchstring
+resultslist=$(pdfgrep -n -H -o "$1" *.pdf)
+resultscount=$(echo "$resultslist" | cut -d ':' -f 1 | uniq -c | awk '{print $1}') # results per pdf
+deduplicatedlist=$(echo "$resultslist" | awk '!a[$0]++') # deduplicate
+pageslist=$(echo "$deduplicatedlist" | cut -d ':' -f 2) # page numbers
+resultpages=$(echo "$deduplicatedlist" | cut -d ':' -f 1 | uniq -c | awk '{print $1}') # result pages per pdf
+
+# determine individual pdf files:
+uniquepdfnames=$(echo "$deduplicatedlist" | cut -d ':' -f 1 | sort -u)
+unset IFS
+uniquepdfcount=$(echo "$uniquepdfnames" | wc -w)
+echo "Found $(echo "$resultslist" | wc -w) results inside $uniquepdfcount pdf files"
+echo "(Results per pdf: $resultscount)"
+
+i=1 # number of file
+field=1 # position in pagelist
+while [ "$i" -le "$uniquepdfcount" ]; do # less or equals
+
+    # different pdf files:
+    resultsthispdf=$(echo $resultpages | awk -v N="$i" '{print $N}') # better than loop with ${resultpages:2:1}
+
+    currentpages=$(echo $pageslist | cut -d " " -f "$field"-$(($field + $resultsthispdf - 1)))
+    field=$(($field + $resultsthispdf))
+
+    pdfsites="$pdfsites$currentpages"
+    if [ "$i" -ne "$uniquepdfcount" ]; then
+        pdfsites="$pdfsites; "
+    fi
+
+    # different pdf files end
+    i=$((i + 1))
+done
+
+echo "$uniquepdfnames"
+pagecount=$(echo "$pageslist" | wc -w)
+echo "Pages: $pagecount ($pdfsites)"
+echo "[Pages per pdf: $resultpages]"
+
+i=1
+c=1
+magick -background red -fill white -pointsize 16 label:"$(echo $uniquepdfnames | cut -d " " -f"$c")" sixel:-
+while [ "$i" -le "$pagecount" ]; do
+    PGN=$(mktemp)
+    magick -size 200x200 xc:none -fill green -draw 'rectangle 0,180,30,200' -fill none -pointsize 16 -draw "text 2,196 '$(echo $pdfsites | cut -d " " -f"$i" | tr -d ";")'" pdf:"$PGN"
+    qpdf --empty --pages "$(echo $uniquepdfnames | cut -d " " -f"$c")" "$(echo $pdfsites | cut -d " " -f"$i" | tr -d ";")" -- - \
+    | gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -g2048x2048 -dPDFFitPage -sOutputFile=- - 2>/dev/null | composite "$PGN" - pdf:- | convert -alpha remove - sixel:- 2>/dev/null
+
+    if [ "$(echo "$pdfsites" | cut -d " " -f"$i")" != "$(echo "$pdfsites" | cut -d " " -f"$i" | tr -d ";")" ]; then
+        c=$((c + 1))
+        magick -background red -fill white -pointsize 16 label:"$(echo $uniquepdfnames | cut -d " " -f"$c")" sixel:-
+    fi
+    i=$((i + 1))
+done

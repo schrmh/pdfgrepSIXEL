@@ -21,6 +21,5 @@ Also note that most terminal emulators don't support SIXEL but it is more adopte
 - Auto resize pages when terminal size changes
 
 ### "Bugs":  
-- Only one word is searchable (no space)  
 - Page numbers could hide stuff..
 - Page numbers >999 won't be visible
