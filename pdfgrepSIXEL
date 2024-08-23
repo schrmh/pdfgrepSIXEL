@@ -42,15 +42,15 @@
     echo "[Pages per pdf: " $resultpages"]"
     
     i=1 c=1
-    convert -background red -fill white -pointsize 16 label:"$(echo $uniquepdfnames | cut -d " " -f$c)" sixel:-
+    magick -background red -fill white -pointsize 16 label:"$(echo $uniquepdfnames | cut -d " " -f$c)" sixel:-
     while [ $i -le $pagecount ]; do
             PGN=$(mktemp)
-            convert -size 200x200 xc:none -fill green -draw 'rectangle 0,180,30,200' -fill none -pointsize 16 -draw "text 2,196 '$(echo $pdfsites | cut -d " " -f$i | tr -d ";")'" pdf:$PGN
+            magick -size 200x200 xc:none -fill green -draw 'rectangle 0,180,30,200' -fill none -pointsize 16 -draw "text 2,196 '$(echo "$pdfsites" | cut -d " " -f$i | tr -d ";")'" pdf:"$PGN"
             qpdf --empty --pages $(echo $uniquepdfnames | cut -d " " -f$c) $(echo $pdfsites | cut -d " " -f$i | tr -d ";") -- - \
             | gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -g2048x2048 -dPDFFitPage -sOutputFile=- - 2>/dev/null | composite $PGN - pdf:- | convert -alpha remove - sixel:- 2>/dev/null
             [ "$(echo $pdfsites | cut -d " " -f$i)" != "$(echo $pdfsites | cut -d " " -f$i | tr -d ";")" ] && { 
                 ((c=c+1))
-                convert -background red -fill white -pointsize 16 label:"$(echo $uniquepdfnames | cut -d " " -f$c)" sixel:-
+                magick -background red -fill white -pointsize 16 label:"$(echo $uniquepdfnames | cut -d " " -f"$c")" sixel:-
             }
         i=$((i + 1))
     done
