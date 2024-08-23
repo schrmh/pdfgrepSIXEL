@@ -1,6 +1,11 @@
 #!/bin/sh
 
-echo "Usage: ./pdfgrepSIXEL 'String'"
+missing=""
+for cmd in pdfgrep magick qpdf gs; do
+    command -v "$cmd" >/dev/null 2>&1 || missing="$missing $cmd"
+done
+[ -n "$missing" ] && { echo "Missing packages:$missing"; exit 1; }
+[ -z "$1" ] && { echo "Usage: ./pdfgrepSIXEL 'String'"; exit 1; }
 
 IFS=" " # delimiter
 # results in syntax: pdfname.pdf:pagenumber:searchstring
