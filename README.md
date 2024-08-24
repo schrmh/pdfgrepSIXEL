@@ -22,7 +22,3 @@ Also note that most terminal emulators don't support SIXEL but it is more adopte
 - See adjacent pages  
 - Custom page size
 - Auto resize pages when terminal size changes
-
-### "Bugs":  
-- Page and result numbers could hide stuff..
-- Page and result numbers >999 won't be visible

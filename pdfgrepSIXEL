@@ -50,29 +50,43 @@ echo "[Pages per pdf: $resultpages]"
 i=1
 c=1
 current_pdf="$(echo $uniquepdfnames | cut -d " " -f"$c")"
-magick -background red -fill white -pointsize 16 label:"$current_pdf" sixel:-
+magick -background red -fill black -pointsize 16 label:"$current_pdf" sixel:-
 while [ "$i" -le "$pagecount" ]; do
     PGN=$(mktemp)
     
     current_page="$(echo "$pdfsites" | cut -d " " -f"$i" | tr -d ";")"
 
-    # Draw green rectangle with page number
-    magick -size 200x200 xc:none -fill green -draw 'rectangle 0,180,30,200' -fill none -pointsize 16 -draw "text 2,196 '$current_page'" pdf:"$PGN"
-
     # Draw orange rectangle per page including corresponding text search result number unless --no-result-numbers is passed
     [ "$show_result_numbers" = true ] && {
-        results_this_page=$(echo "$resultslist" | grep "^$current_pdf:$current_page:" | wc -l)
-        magick "$PGN" -fill orange -draw 'rectangle 40,180,70,200' -fill none -pointsize 16 -draw "text 42,196 '$results_this_page'" pdf:"$PGN"
+        TEXT_ORANGE=$(echo "$resultslist" | grep "^$current_pdf:$current_page:" | wc -l)
+    } || {
+        TEXT_ORANGE=" "
     }
 
-    qpdf --empty --pages "$current_pdf" "$current_page" -- - \
-    | gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -g2048x2048 -dPDFFitPage -sOutputFile=- - 2>/dev/null | composite "$PGN" - pdf:- | convert -alpha remove - sixel:- 2>/dev/null
+DIMENSION=2048
+POINTSIZE=16
+TEXT_GREEN="$current_page"
+TEXT_GREEN_DIMENSIONS=$(magick -pointsize $POINTSIZE label:"$TEXT_GREEN" -format "%wx%h" info:)
+TEXT_ORANGE_DIMENSIONS=$(magick -pointsize $POINTSIZE label:"$TEXT_ORANGE" -format "%wx%h" info:)
+TEXT_GREEN_WIDTH=$(echo $TEXT_GREEN_DIMENSIONS | cut -d'x' -f1)
+TEXT_ORANGE_WIDTH=$(echo $TEXT_ORANGE_DIMENSIONS | cut -d'x' -f1)
+TEXT_HEIGHT=$(echo $TEXT_GREEN_DIMENSIONS | cut -d'x' -f2)
+
+qpdf --empty --pages "$current_pdf" "$current_page" -- - \
+    | gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -g"$DIMENSION"x"$DIMENSION" -dPDFFitPage -sOutputFile=- - 2>/dev/null \
+    | convert -alpha remove - -size $((((DIMENSION+10)) / 10))x$((POINTSIZE + 16)) xc:white \
+        \( xc:gray \
+          -fill green -draw "rectangle 0,0 $((TEXT_GREEN_WIDTH + 16)),$((TEXT_HEIGHT + 8))" \
+          -fill orange -draw "rectangle $((TEXT_GREEN_WIDTH + 16)),0 $((TEXT_GREEN_WIDTH + 16 + TEXT_ORANGE_WIDTH + 16)),$((TEXT_HEIGHT + 8))" \
+          -fill white -pointsize $POINTSIZE -draw "text 8,$TEXT_HEIGHT '$TEXT_GREEN'" \
+          -fill black -pointsize $POINTSIZE -draw "text $((TEXT_GREEN_WIDTH + 16 + 8)),$TEXT_HEIGHT '$TEXT_ORANGE'" \
+        \) \
+        -append sixel:- 2>/dev/null
 
     [ "$(echo "$pdfsites" | cut -d " " -f"$i")" != "$current_page" ] && {
         c=$((c + 1))
         current_pdf="$(echo $uniquepdfnames | cut -d " " -f"$c")"
-        magick -background red -fill white -pointsize 16 label:"$current_pdf" sixel:-
+        magick -background red -fill black -pointsize $POINTSIZE label:"$current_pdf" sixel:-
     }
     i=$((i + 1))
 done
-
