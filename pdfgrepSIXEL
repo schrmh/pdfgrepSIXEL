@@ -13,13 +13,13 @@ show_result_numbers=true
 IFS=" " # delimiter
 # results in syntax: pdfname.pdf:pagenumber:searchstring
 resultslist=$(pdfgrep -n -H -o "$1" *.pdf)
-resultscount=$(echo "$resultslist" | cut -d ':' -f 1 | uniq -c | awk '{print $1}') # results per pdf
+resultscount=$(echo "$resultslist" | cut -d ':' -f 1 | uniq -c | awk '{print $1}' | tr '\n' ' ') # results per pdf
 deduplicatedlist=$(echo "$resultslist" | awk '!a[$0]++') # deduplicate
 pageslist=$(echo "$deduplicatedlist" | cut -d ':' -f 2) # page numbers
-resultpages=$(echo "$deduplicatedlist" | cut -d ':' -f 1 | uniq -c | awk '{print $1}') # result pages per pdf
+resultpages=$(echo "$deduplicatedlist" | cut -d ':' -f 1 | uniq -c | awk '{print $1}' | tr '\n' ' ') # result pages per pdf
 
 # determine individual pdf files:
-uniquepdfnames=$(echo "$deduplicatedlist" | cut -d ':' -f 1 | sort -u)
+uniquepdfnames=$(echo "$deduplicatedlist" | cut -d ':' -f 1 | sort -u | tr '\n' ' ')
 unset IFS
 uniquepdfcount=$(echo "$uniquepdfnames" | wc -w)
 echo "Found $(echo "$resultslist" | wc -w) results inside $uniquepdfcount pdf files"
