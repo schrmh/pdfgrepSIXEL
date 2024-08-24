@@ -49,27 +49,29 @@ echo "[Pages per pdf: $resultpages]"
 
 i=1
 c=1
-magick -background red -fill white -pointsize 16 label:"$(echo $uniquepdfnames | cut -d " " -f"$c")" sixel:-
+current_pdf="$(echo $uniquepdfnames | cut -d " " -f"$c")"
+magick -background red -fill white -pointsize 16 label:"$current_pdf" sixel:-
 while [ "$i" -le "$pagecount" ]; do
     PGN=$(mktemp)
-
-    current_pdf=$(echo $uniquepdfnames | cut -d " " -f"$c")
+    
+    current_page="$(echo "$pdfsites" | cut -d " " -f"$i" | tr -d ";")"
 
     # Draw green rectangle with page number
-    magick -size 200x200 xc:none -fill green -draw 'rectangle 0,180,30,200' -fill none -pointsize 16 -draw "text 2,196 '$(echo $pdfsites | cut -d " " -f"$i" | tr -d ";")'" pdf:"$PGN"
+    magick -size 200x200 xc:none -fill green -draw 'rectangle 0,180,30,200' -fill none -pointsize 16 -draw "text 2,196 '$current_page'" pdf:"$PGN"
 
     # Draw orange rectangle per page including corresponding text search result number unless --no-result-numbers is passed
     [ "$show_result_numbers" = true ] && {
-        results_this_page=$(echo "$resultslist" | grep "^$current_pdf:$(echo "$pdfsites" | cut -d " " -f"$i" | tr -d ";"):" | wc -l)
+        results_this_page=$(echo "$resultslist" | grep "^$current_pdf:$current_page:" | wc -l)
         magick "$PGN" -fill orange -draw 'rectangle 40,180,70,200' -fill none -pointsize 16 -draw "text 42,196 '$results_this_page'" pdf:"$PGN"
     }
 
-    qpdf --empty --pages "$(echo $uniquepdfnames | cut -d " " -f"$c")" "$(echo $pdfsites | cut -d " " -f"$i" | tr -d ";")" -- - \
+    qpdf --empty --pages "$current_pdf" "$current_page" -- - \
     | gs -dBATCH -dNOPAUSE -q -sDEVICE=pdfwrite -g2048x2048 -dPDFFitPage -sOutputFile=- - 2>/dev/null | composite "$PGN" - pdf:- | convert -alpha remove - sixel:- 2>/dev/null
 
-    [ "$(echo "$pdfsites" | cut -d " " -f"$i")" != "$(echo "$pdfsites" | cut -d " " -f"$i" | tr -d ";")" ] && {
+    [ "$(echo "$pdfsites" | cut -d " " -f"$i")" != "$current_page" ] && {
         c=$((c + 1))
-        magick -background red -fill white -pointsize 16 label:"$(echo $uniquepdfnames | cut -d " " -f"$c")" sixel:-
+        current_pdf="$(echo $uniquepdfnames | cut -d " " -f"$c")"
+        magick -background red -fill white -pointsize 16 label:"$current_pdf" sixel:-
     }
     i=$((i + 1))
 done
