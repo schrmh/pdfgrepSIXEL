@@ -3,8 +3,8 @@
 ## *A tool inspired by pdfgrep that displays not text but pdf pages as results.*  
 
 ### Usage: `./pdfgrepSIXEL 'String'`  
-**You need a SIXEL capable terminal for this to work!**  
-*[st-flexipatch](https://github.com/bakkeby/st-flexipatch) works best with my script from my experience.  
+**You need a SIXEL capable terminal for this to work!** (See https://www.arewesixelyet.com/)  
+*[Konsole](https://konsole.kde.org/) works best with my script from my experience.  
 You could also use [xterm](https://invisible-island.net/datafiles/release/xterm.tar.gz) or [mlterm](http://mlterm.sourceforge.net/) but those will most likely remove SIXELs before all the found pages are displayed.  
 Also note that most terminal emulators don't support SIXEL but it is more adopted than other competitors.*    
 
