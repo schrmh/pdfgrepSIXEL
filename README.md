@@ -4,7 +4,7 @@
 
 ### Usage: `./pdfgrepSIXEL 'String'`  
 **You need a SIXEL capable terminal for this to work!** (See https://www.arewesixelyet.com/)  
-*[Konsole](https://konsole.kde.org/) works best with my script from my experience.  
+*[Konsole](https://konsole.kde.org/) works best with my script from my experience (but you might want to increase its [Scrollback](https://docs.kde.org/stable5/en/konsole/konsole/scrollback.html) buffer size).  
 You could also use [xterm](https://invisible-island.net/datafiles/release/xterm.tar.gz) or [mlterm](http://mlterm.sourceforge.net/) but those will most likely remove SIXELs before all the found pages are displayed.  
 Also note that most terminal emulators don't support SIXEL but it is more adopted than other competitors.*    
 
