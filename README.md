@@ -17,10 +17,13 @@ Also note that most terminal emulators don't support SIXEL but it is more adopte
 Parameter order doesn't matter but the search string has to come last.
 
 ### Possible future features:  
+- Further passing of parameters to pdfgrep
+- Search of individual files
+- Recursive search
 - (No) duplicate pages  
-- Highlight text inside pages  
-(- display numbers next to pages for those operations:)  
+- Highlight text inside pages (very hard with shell script utilities alone...)  
+Optionally wrap the thing to allow the following operations (shortcuts next to pages):
 - Edit a page in an external editor (text or graphical)  
 - See adjacent pages  
-- Custom page size
+- Resize (single/all) pages after output  
 - Auto resize pages when terminal size changes
