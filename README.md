@@ -9,10 +9,12 @@ You could also use [xterm](https://invisible-island.net/datafiles/release/xterm.
 Also note that most terminal emulators don't support SIXEL but it is more adopted than other competitors.*    
 
 ### Preview:  
-![Example image showing simple usage and output of pdfgrepSIXEL](/example.png?raw=true "Example image showing simple usage and output of pdfgrepSIXEL")  
+![Example image showing simple usage and output of pdfgrepSIXEL. User searched for text Quanten and got displayed a few PDF pages from two pdf documents within a terminal emulator.](/example.png?raw=true "Example image showing simple usage !and !output of pdfgrepSIXEL")
 
 ### Features:
 - Orange results per page number (hide with `--no-result-numbers`)
+- Scale (all sides of) pages to size in pixel by using `--scale-to`  
+Parameter order doesn't matter but the search string has to come last.
 
 ### Possible future features:  
 - (No) duplicate pages  
