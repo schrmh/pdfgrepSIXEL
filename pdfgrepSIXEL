@@ -71,11 +71,7 @@ while [ "$i" -le "$pagecount" ]; do
 	current_page="$(echo "$pdfsites" | cut -d " " -f"$i" | tr -d ";")"
 
 	# Draw orange rectangle per page including corresponding text search result number unless --no-result-numbers is passed
-	[ "$show_result_numbers" = true ] && {
-		TEXT_ORANGE=$(echo "$resultslist" | grep "^$current_pdf:$current_page:" | wc -l)
-	} || {
-		TEXT_ORANGE=" "
-	}
+	[ "$show_result_numbers" = true ] && TEXT_ORANGE=$(echo "$resultslist" | grep "^$current_pdf:$current_page:" | wc -l) || TEXT_ORANGE=" "
 
 	POINTSIZE=16
 	TEXT_GREEN="$current_page"
